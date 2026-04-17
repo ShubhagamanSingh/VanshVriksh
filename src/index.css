@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+  }
+}
+
+.node.selected circle {
+  filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.4));
+}
+
+.link {
+  transition: stroke 0.3s ease;
+}
+
+.node text {
+  transition: all 0.2s ease;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #family-tree-canvas, #family-tree-canvas * {
+    visibility: visible;
+  }
+  #family-tree-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
