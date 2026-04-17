@@ -33,17 +33,35 @@
 }
 
 @media print {
-  body * {
-    visibility: hidden;
+  @page {
+    size: auto;
+    margin: 10mm;
   }
-  #family-tree-canvas, #family-tree-canvas * {
-    visibility: visible;
+  body {
+    background: white !important;
+  }
+  aside, header, footer, .fixed, button {
+    display: none !important;
+  }
+  main {
+    position: static !important;
+    overflow: visible !important;
+    width: 100% !important;
+    height: auto !important;
   }
   #family-tree-canvas {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    position: static !important;
+    overflow: visible !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  svg {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 100% !important;
+    overflow: visible !important;
   }
 }

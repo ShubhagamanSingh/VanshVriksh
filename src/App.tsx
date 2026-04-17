@@ -4,7 +4,8 @@
  */
 
 import { useState } from "react";
-import { Download, Share2, Users, Printer, Hand, MousePointer2, SlidersHorizontal, ChevronDown, ChevronUp, FileJson, FileSpreadsheet } from "lucide-react";
+import { Download, Share2, Users, Printer, Hand, MousePointer2, SlidersHorizontal, ChevronDown, ChevronUp, FileJson, FileSpreadsheet, ImageIcon, Loader2 } from "lucide-react";
+import { toPng } from 'html-to-image';
 import { FamilyMember } from "./types";
 import { INITIAL_DATA } from "./constants";
 import { addMember, updateMember, deleteMember, exportToJSON, exportToCSV } from "./lib/treeUtils";
@@ -21,10 +22,11 @@ export default function App() {
   
   // Gap states
   const [siblingGap, setSiblingGap] = useState(2);
-  const [subtreeGap, setSubtreeGap] = useState(3);
-  const [levelGap, setLevelGap] = useState(2);
+  const [subtreeGap, setSubtreeGap] = useState(2);
+  const [levelGap, setLevelGap] = useState(1);
   const [showControls, setShowControls] = useState(false);
   const [printTip, setPrintTip] = useState(false);
+  const [isExportingImage, setIsExportingImage] = useState(false);
 
   const handleUpdateMember = (id: string, updates: Partial<FamilyMember>) => {
     const newData = JSON.parse(JSON.stringify(treeData));
@@ -54,6 +56,35 @@ export default function App() {
     setPrintTip(true);
     setTimeout(() => setPrintTip(false), 5000);
     window.print();
+  };
+
+  const handleDownloadImage = async () => {
+    const el = document.getElementById('family-tree-canvas');
+    if (!el) return;
+    
+    setIsExportingImage(true);
+    try {
+      const dataUrl = await toPng(el, {
+        quality: 1,
+        pixelRatio: 3, // Full HD / 4K equivalent quality
+        backgroundColor: '#ffffff',
+        style: {
+          borderRadius: '0',
+          border: 'none',
+          boxShadow: 'none',
+          padding: '40px'
+        }
+      });
+      
+      const link = document.createElement('a');
+      link.download = `family-tree-${new Date().getTime()}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Image export failed:', err);
+    } finally {
+      setIsExportingImage(false);
+    }
   };
 
   return (
@@ -159,10 +190,19 @@ export default function App() {
 
             <button 
               onClick={handlePrint}
-              className="flex items-center gap-3 w-full p-3 hover:bg-slate-50 rounded-xl text-slate-600 transition-colors font-semibold"
+              className="flex items-center gap-3 w-full p-3 hover:bg-slate-50 rounded-xl text-slate-600 transition-colors font-semibold shadow-sm border border-slate-100"
             >
               <Printer size={20} />
               <span>Print Full Tree</span>
+            </button>
+
+            <button 
+              onClick={handleDownloadImage}
+              disabled={isExportingImage}
+              className="flex items-center gap-3 w-full p-3 hover:bg-slate-50 rounded-xl text-slate-600 transition-colors font-semibold shadow-sm border border-slate-100 disabled:opacity-50"
+            >
+              {isExportingImage ? <Loader2 size={20} className="animate-spin text-blue-500" /> : <ImageIcon size={20} />}
+              <span>Download HD Image</span>
             </button>
           </div>
         </div>
@@ -219,7 +259,7 @@ export default function App() {
         </header>
 
         {/* The Tree Visualization */}
-        <div className="flex-1 p-8 relative overflow-hidden">
+        <div id="family-tree-canvas" className="flex-1 p-8 relative overflow-hidden print:p-0">
           {printTip && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in zoom-in duration-300">
               <Printer size={18} className="text-blue-400" />
