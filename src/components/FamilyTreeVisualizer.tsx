@@ -71,6 +71,24 @@ export default function FamilyTreeVisualizer({
     const root = d3.hierarchy(data);
     treeLayout(root);
 
+    // Initial centering logic: Calculate tree bounds and translate to center of view
+    const nodes = root.descendants();
+    if (nodes.length > 0) {
+      const minXNode = d3.min(nodes, d => isVertical ? d.x : d.y) || 0;
+      const maxXNode = d3.max(nodes, d => isVertical ? d.x : d.y) || 0;
+      const minYNode = d3.min(nodes, d => isVertical ? d.y : d.x) || 0;
+      const maxYNode = d3.max(nodes, d => isVertical ? d.y : d.x) || 0;
+
+      const graphWidth = maxXNode - minXNode;
+      const graphHeight = maxYNode - minYNode;
+      
+      // Calculate transform to center graph in the SVG viewport
+      const tx = (width / 2) - minXNode - (graphWidth / 2);
+      const ty = (height / 2) - minYNode - (graphHeight / 2);
+
+      svg.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(0.8));
+    }
+
     // Custom Path Generator for "Elbow" style links
     const linkPath = (d: any) => {
       const startX = isVertical ? d.source.x : d.source.y;
