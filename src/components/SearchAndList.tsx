@@ -33,11 +33,10 @@ export default function SearchAndList({ root, onSelect, selectedId }: Props) {
       </div>
       <div className="flex-1 overflow-hidden">
         <div className="font-semibold truncate">{member.name}</div>
-        {member.birthDate && (
-          <div className={`text-[10px] uppercase font-bold tracking-wider ${selectedId === member.id ? 'text-blue-100' : 'text-slate-400'}`}>
-            Born: {member.birthDate}
-          </div>
-        )}
+        <div className={`text-[10px] uppercase font-bold tracking-wider ${selectedId === member.id ? 'text-blue-100' : 'text-slate-400'}`}>
+          {member.birthDate && <span>* {member.birthDate}</span>}
+          {member.deathDate && <span className="ml-2">★ {member.deathDate}</span>}
+        </div>
       </div>
       <ChevronRight size={14} className="opacity-40" />
     </button>

@@ -159,7 +159,7 @@ export default function FamilyTreeVisualizer({
       .attr("fill", "#1e293b")
       .style("user-select", "none")
       .style("pointer-events", "none")
-      .text(d => d.data.name)
+      .text(d => d.data.deathDate ? `★ ${d.data.name}` : d.data.name)
       .clone(true)
       .lower()
       .attr("stroke", "#f1f5f9")

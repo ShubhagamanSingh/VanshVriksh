@@ -59,6 +59,17 @@ export default function MemberDetails({ member, onClose, onUpdate, onAddChild, o
         </div>
 
         <div>
+          <label className="block text-xs font-bold uppercase text-slate-500 mb-1 font-sans">Date of Death</label>
+          <input
+            type="date"
+            value={member.deathDate || ""}
+            onChange={(e) => onUpdate(member.id, { deathDate: e.target.value })}
+            className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            placeholder="Keep empty if alive"
+          />
+        </div>
+
+        <div>
           <label className="block text-xs font-bold uppercase text-slate-500 mb-1 font-sans">About</label>
           <textarea
             value={member.bio || ""}
