@@ -121,30 +121,39 @@ export default function FamilyTreeVisualizer({
       .attr("stroke", d => d.data.id === selectedId ? "#1d4ed8" : "#2563eb")
       .attr("stroke-width", 1.5);
 
-    node.append("text")
-      .attr("dy", isVertical ? "-1.2em" : ".31em")
+    // Marker (background for text)
+    const labelGroups = node.append("g")
+      .attr("class", "label-group");
+
+    labelGroups.append("text")
+      .attr("dy", isVertical ? "-1.5em" : ".31em")
       .attr("x", d => {
         if (isVertical) return 0;
-        return d.children ? -10 : 10;
+        return d.children ? -12 : 12;
       })
-      .attr("y", isVertical ? -2 : 0)
       .attr("text-anchor", d => {
         if (isVertical) return "middle";
         return d.children ? "end" : "start";
       })
       .attr("font-family", "Inter, sans-serif")
       .attr("font-size", isVertical ? "10px" : "11px")
-      .attr("font-weight", d => d.data.id === selectedId ? "700" : "500")
+      .attr("font-weight", "800")
       .attr("fill", "#1e293b")
       .style("user-select", "none")
       .style("pointer-events", "none")
-      .text(d => d.data.name);
+      .text(d => d.data.name)
+      .clone(true)
+      .lower()
+      .attr("stroke", "#f1f5f9")
+      .attr("stroke-width", 5)
+      .attr("stroke-linejoin", "round")
+      .attr("opacity", 0.9);
 
   }, [data, selectedId, orientation, siblingGap, subtreeGap, levelGap, interactionMode]);
 
   return (
-    <div id="family-tree-canvas" className={`w-full h-full bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-inner flex items-center justify-center print:border-none print:shadow-none print:bg-white`}>
-      <svg ref={svgRef} className="w-full h-full" style={{ minHeight: '500px' }} />
+    <div id="family-tree-canvas" className={`w-full h-full bg-white overflow-hidden flex items-center justify-center print:bg-white`}>
+      <svg ref={svgRef} className="w-full h-full bg-white" style={{ minHeight: '500px' }} />
     </div>
   );
 }

@@ -88,10 +88,13 @@ export default function App() {
       // and ensure the entire bounding box of the D3 graph is captured.
       const dataUrl = await toPng(el, {
         quality: 1,
-        pixelRatio: 4, // Ultra HD quality for readability
+        pixelRatio: 4, 
         backgroundColor: '#ffffff',
+        // Fix for "Error inlining remote css file" and "cssRules" access errors
+        // By providing an empty string for fontEmbedCSS, we skip the automatic (and often failing) 
+        // process of scanning and embedding remote fonts like Google Fonts.
+        fontEmbedCSS: '', 
         filter: (node) => {
-          // Filter out temporary UI elements if any
           return !node.classList?.contains('details-panel');
         },
         style: {
@@ -236,7 +239,7 @@ export default function App() {
       </aside>
 
       {/* Main Canvas Area */}
-      <main className="flex-1 flex flex-col relative bg-[#FBFBFA]">
+      <main className="flex-1 flex flex-col relative bg-white">
         {/* Header Bar */}
         <header className="h-16 px-8 flex items-center justify-between border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 transition-all">
           <div className="flex items-center gap-6">
