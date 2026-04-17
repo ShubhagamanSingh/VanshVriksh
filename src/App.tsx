@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useRef } from "react";
-import { Download, Share2, Users, Printer, Hand, MousePointer2, SlidersHorizontal, ChevronDown, ChevronUp, FileJson, FileSpreadsheet, ImageIcon, Loader2, Keyboard, ZoomIn } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Download, Share2, Users, Printer, Hand, MousePointer2, SlidersHorizontal, ChevronDown, ChevronUp, FileJson, FileSpreadsheet, ImageIcon, Loader2, Keyboard, ZoomIn, Upload } from "lucide-react";
 import { toPng, toSvg } from 'html-to-image';
 import { FamilyMember } from "./types";
 import { INITIAL_DATA } from "./constants";
@@ -16,7 +16,6 @@ import SearchAndList from "./components/SearchAndList";
 export default function App() {
   const [treeData, setTreeData] = useState<FamilyMember>(INITIAL_DATA);
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
-  const [isExportOpen, setIsExportOpen] = useState(false);
   const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('vertical');
   const [interactionMode, setInteractionMode] = useState<'pointer' | 'hand'>('pointer');
   
@@ -26,9 +25,12 @@ export default function App() {
   const [levelGap, setLevelGap] = useState(1);
   const [showControls, setShowControls] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [printTip, setPrintTip] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -117,6 +119,30 @@ export default function App() {
     }
   };
 
+  const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (json.id && json.name && Array.isArray(json.children)) {
+          setTreeData(json);
+          setIsImportOpen(false);
+          setSelectedMember(null);
+          alert("Family Data Imported Successfully!");
+        } else {
+          alert("Invalid file format. Please upload a valid VanshVriksh JSON file.");
+        }
+      } catch (err) {
+        alert("Failed to parse JSON file.");
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   return (
     <div className="flex h-screen bg-white font-sans text-slate-900 overflow-hidden">
       {/* Sidebar Navigation */}
@@ -194,7 +220,39 @@ export default function App() {
         <div className="p-6 border-t border-slate-100">
           <div className="flex flex-col gap-2">
             <button 
-              onClick={() => setIsExportOpen(!isExportOpen)}
+              onClick={() => {
+                setIsImportOpen(!isImportOpen);
+                setIsExportOpen(false);
+              }}
+              className="flex items-center gap-3 w-full p-3 hover:bg-slate-50 rounded-xl text-slate-600 transition-colors font-semibold"
+            >
+              <Upload size={20} />
+              <span>Import History</span>
+            </button>
+
+            {isImportOpen && (
+              <div className="flex flex-col gap-1 pl-3 border-l-2 border-slate-100 mb-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  className="hidden" 
+                  ref={fileInputRef}
+                  onChange={handleImportJSON}
+                />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 text-sm p-2 text-slate-500 hover:text-blue-600 font-medium"
+                >
+                  <FileJson size={14} /> Upload JSON File
+                </button>
+              </div>
+            )}
+
+            <button 
+              onClick={() => {
+                setIsExportOpen(!isExportOpen);
+                setIsImportOpen(false);
+              }}
               className="flex items-center gap-3 w-full p-3 hover:bg-slate-50 rounded-xl text-slate-600 transition-colors font-semibold"
             >
               <Download size={20} />
