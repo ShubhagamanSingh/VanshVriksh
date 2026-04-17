@@ -116,27 +116,28 @@ export default function FamilyTreeVisualizer({
       });
 
     node.append("circle")
-      .attr("r", 6)
+      .attr("r", 5)
       .attr("fill", d => d.data.id === selectedId ? "#2563eb" : "#fff")
       .attr("stroke", d => d.data.id === selectedId ? "#1d4ed8" : "#2563eb")
-      .attr("stroke-width", 2);
+      .attr("stroke-width", 1.5);
 
     node.append("text")
-      .attr("dy", isVertical ? "-1em" : ".31em")
+      .attr("dy", isVertical ? "-1.2em" : ".31em")
       .attr("x", d => {
         if (isVertical) return 0;
-        return d.children ? -12 : 12;
+        return d.children ? -10 : 10;
       })
-      .attr("y", isVertical ? -5 : 0)
+      .attr("y", isVertical ? -2 : 0)
       .attr("text-anchor", d => {
         if (isVertical) return "middle";
         return d.children ? "end" : "start";
       })
       .attr("font-family", "Inter, sans-serif")
-      .attr("font-size", "11px")
+      .attr("font-size", isVertical ? "10px" : "11px")
       .attr("font-weight", d => d.data.id === selectedId ? "700" : "500")
       .attr("fill", "#1e293b")
       .style("user-select", "none")
+      .style("pointer-events", "none")
       .text(d => d.data.name);
 
   }, [data, selectedId, orientation, siblingGap, subtreeGap, levelGap, interactionMode]);

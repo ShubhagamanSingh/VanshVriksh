@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
-import { Download, Share2, Users, Printer, Hand, MousePointer2, SlidersHorizontal, ChevronDown, ChevronUp, FileJson, FileSpreadsheet, ImageIcon, Loader2 } from "lucide-react";
-import { toPng } from 'html-to-image';
+import { useState, useEffect, useRef } from "react";
+import { Download, Share2, Users, Printer, Hand, MousePointer2, SlidersHorizontal, ChevronDown, ChevronUp, FileJson, FileSpreadsheet, ImageIcon, Loader2, Keyboard, ZoomIn } from "lucide-react";
+import { toPng, toSvg } from 'html-to-image';
 import { FamilyMember } from "./types";
 import { INITIAL_DATA } from "./constants";
 import { addMember, updateMember, deleteMember, exportToJSON, exportToCSV } from "./lib/treeUtils";
@@ -25,8 +25,28 @@ export default function App() {
   const [subtreeGap, setSubtreeGap] = useState(2);
   const [levelGap, setLevelGap] = useState(1);
   const [showControls, setShowControls] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [printTip, setPrintTip] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Basic shortcuts (if not typing in input)
+      const isTyping = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+      
+      if (!isTyping) {
+        if (e.key.toLowerCase() === 'h') setInteractionMode('hand');
+        if (e.key.toLowerCase() === 'p') setInteractionMode('pointer');
+        if (e.key.toLowerCase() === 'v') setOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical');
+        if (e.key === 'Escape') setSelectedMember(null);
+        if (e.key === '?' ) setShowShortcuts(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleUpdateMember = (id: string, updates: Partial<FamilyMember>) => {
     const newData = JSON.parse(JSON.stringify(treeData));
@@ -64,20 +84,27 @@ export default function App() {
     
     setIsExportingImage(true);
     try {
+      // For very large trees (up to 40 generations), we use a high pixel ratio
+      // and ensure the entire bounding box of the D3 graph is captured.
       const dataUrl = await toPng(el, {
         quality: 1,
-        pixelRatio: 3, // Full HD / 4K equivalent quality
+        pixelRatio: 4, // Ultra HD quality for readability
         backgroundColor: '#ffffff',
+        filter: (node) => {
+          // Filter out temporary UI elements if any
+          return !node.classList?.contains('details-panel');
+        },
         style: {
           borderRadius: '0',
           border: 'none',
           boxShadow: 'none',
-          padding: '40px'
+          padding: '80px',
+          overflow: 'visible'
         }
       });
       
       const link = document.createElement('a');
-      link.download = `family-tree-${new Date().getTime()}.png`;
+      link.download = `VanshVriksh-Full-Export-${new Date().getTime()}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -259,7 +286,7 @@ export default function App() {
         </header>
 
         {/* The Tree Visualization */}
-        <div id="family-tree-canvas" className="flex-1 p-8 relative overflow-hidden print:p-0">
+        <div id="family-tree-canvas" className="flex-1 p-8 relative overflow-hidden print:p-0 print:overflow-visible">
           {printTip && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in zoom-in duration-300">
               <Printer size={18} className="text-blue-400" />
@@ -283,7 +310,22 @@ export default function App() {
         </div>
 
         {/* Footer Info */}
-        <footer className="h-10 px-8 flex items-center justify-between bg-white border-t border-slate-100">
+        <footer className="h-10 px-8 flex items-center justify-between bg-white border-t border-slate-100 relative">
+          {showShortcuts && (
+            <div className="absolute bottom-12 right-8 bg-slate-900 text-white p-4 rounded-xl shadow-2xl z-50 text-[10px] animate-in slide-in-from-bottom-2">
+              <h4 className="font-bold border-b border-white/20 pb-2 mb-2 flex items-center gap-2">
+                <Keyboard size={12} /> Keyboard Shortcuts
+              </h4>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+                <div className="flex justify-between gap-4"><span>Pointer Tool</span> <span className="text-blue-400 font-mono">P</span></div>
+                <div className="flex justify-between gap-4"><span>Hand Tool</span> <span className="text-blue-400 font-mono">H</span></div>
+                <div className="flex justify-between gap-4"><span>Flip View</span> <span className="text-blue-400 font-mono">V</span></div>
+                <div className="flex justify-between gap-4"><span>Close Panel</span> <span className="text-blue-400 font-mono">Esc</span></div>
+                <div className="flex justify-between gap-4"><span>Show Help</span> <span className="text-blue-400 font-mono">?</span></div>
+              </div>
+            </div>
+          )}
+          
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-4">
             <span>© 2026 VanshVriksh</span>
             <span>|</span>
@@ -291,8 +333,11 @@ export default function App() {
             <span>|</span>
             <span className="text-blue-500">{interactionMode === 'hand' ? 'Pan Mode Active' : 'Selection Mode Active'}</span>
           </div>
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 cursor-pointer">
-            Documentation & Help
+          <div 
+            onClick={() => setShowShortcuts(!showShortcuts)}
+            className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 cursor-pointer flex items-center gap-2"
+          >
+            <Keyboard size={12} /> Keyboard Shortcuts (?)
           </div>
         </footer>
 
